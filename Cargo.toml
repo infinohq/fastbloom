@@ -24,6 +24,7 @@ getrandom = { version = "0.2", features = ["js"] }
 [dependencies]
 getrandom = "0.2"
 rand = { version = "0.8.5", optional = true }
+serde = { version = "1.0", features = ["derive"] }
 siphasher = "1.0.0"
 wide = "0.7.15"
 
@@ -31,3 +32,4 @@ wide = "0.7.15"
 rand = "0.8.5"
 rand_regex = "0.16.0"
 ahash = "0.8.6"
+serde_json = "1.0.116"

@@ -1,5 +1,7 @@
 use std::ops::Range;
 
+use serde::{Deserialize, Serialize};
+
 /// The number of bits in the bit mask that is used to index a u64's bits.
 ///
 /// u64's are used to store 64 bits, so the index ranges from 0 to 63.
@@ -19,7 +21,7 @@ const BIT_MASK: u64 = (1 << BIT_MASK_LEN) - 1;
 ///
 /// Indexing a block is also efficient, since it can be done with bit operators because
 /// the size of a block is a power of 2.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BlockedBitVec<const BLOCK_SIZE_BITS: usize> {
     bits: Vec<u64>,
 }
@@ -109,6 +111,7 @@ impl<const BLOCK_SIZE_BITS: usize> From<Vec<u64>> for BlockedBitVec<BLOCK_SIZE_B
 mod tests {
     use super::*;
     use rand::Rng;
+    use serde_json;
     use std::collections::HashSet;
 
     #[test]
@@ -147,5 +150,23 @@ mod tests {
             BlockedBitVec::<64>::set_for_block(block_mut, bit_index);
             assert!(BlockedBitVec::<64>::check_for_block(block_mut, bit_index));
         }
+    }
+
+    #[test]
+    fn test_serde_roundtrip() {
+        // Create a sample BlockedBitVec instance
+        let original = BlockedBitVec {
+            bits: vec![0b10101010, 0b01010101],
+        };
+
+        // Serialize the instance to JSON
+        let json_string = serde_json::to_string(&original).expect("Serialization failed");
+
+        // Deserialize the JSON back to a BlockedBitVec instance
+        let deserialized: BlockedBitVec<64> =
+            serde_json::from_str(&json_string).expect("Deserialization failed");
+
+        // Ensure that the deserialized instance is equal to the original
+        assert_eq!(original, deserialized);
     }
 }

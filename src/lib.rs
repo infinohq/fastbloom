@@ -9,6 +9,7 @@ pub use builder::{BuilderWithBits, BuilderWithFalsePositiveRate};
 mod bit_vector;
 use bit_vector::BlockedBitVec;
 mod sparse_hash;
+use serde::{Deserialize, Serialize};
 use sparse_hash::SparseHash;
 use wide::{u64x2, u64x4};
 
@@ -49,7 +50,7 @@ use wide::{u64x2, u64x4};
 ///     .hasher(RandomState::default())
 ///     .items(["42", "🦀"]);
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BloomFilter<const BLOCK_SIZE_BITS: usize = 512, S = DefaultHasher> {
     bits: BlockedBitVec<BLOCK_SIZE_BITS>,
     /// The total target hashes per item that is specified by user or optimized to maximize accuracy
@@ -59,6 +60,8 @@ pub struct BloomFilter<const BLOCK_SIZE_BITS: usize = 512, S = DefaultHasher> {
     /// The number of hashes per item in addition to `num_rounds`. These hashes can be applied across many `u64`s in a block.
     /// These hashes are in addition to `num_rounds` to make up for rounding errors.
     num_hashes: u64,
+
+    #[serde(skip)]
     hasher: S,
 }
 
@@ -407,6 +410,7 @@ pub(crate) fn block_index(num_blocks: usize, hash: u64) -> usize {
 mod tests {
     use super::*;
     use rand::{rngs::StdRng, Rng, SeedableRng};
+    use serde_json;
     use std::{collections::HashSet, iter::repeat};
 
     trait Seeded: BuildHasher {
@@ -888,5 +892,21 @@ mod tests {
                 assert!(items.iter().all(|x| new.contains(x)));
             }
         }
+    }
+
+    #[test]
+    fn test_serde_roundtrip() {
+        // Create a sample BloomFilter instance
+        let original = BloomFilter::with_num_bits(1024).expected_items(1_000_000);
+
+        // Serialize the instance to JSON
+        let json_string = serde_json::to_string(&original).expect("Serialization failed");
+
+        // Deserialize the JSON back to a BloomFilter instance
+        let deserialized: BloomFilter<512, DefaultHasher> =
+            serde_json::from_str(&json_string).expect("Deserialization failed");
+
+        // Ensure that the deserialized instance is equal to the original
+        assert_eq!(original, deserialized);
     }
 }
