@@ -897,7 +897,9 @@ mod tests {
     #[test]
     fn test_serde_roundtrip() {
         // Create a sample BloomFilter instance
-        let original = BloomFilter::with_num_bits(1024).expected_items(1_000_000);
+        let mut original = BloomFilter::with_num_bits(1024).expected_items(1_000_000);
+        original.insert("term1");
+        original.insert("term2");
 
         // Serialize the instance to JSON
         let json_string = serde_json::to_string(&original).expect("Serialization failed");
@@ -908,5 +910,8 @@ mod tests {
 
         // Ensure that the deserialized instance is equal to the original
         assert_eq!(original, deserialized);
+        assert!(deserialized.contains("term1"));
+        assert!(deserialized.contains("term2"));
+        assert!(!deserialized.contains("doesnotexist"));
     }
 }
