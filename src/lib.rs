@@ -61,7 +61,6 @@ pub struct BloomFilter<const BLOCK_SIZE_BITS: usize = 512, S = DefaultHasher> {
     /// These hashes are in addition to `num_rounds` to make up for rounding errors.
     num_hashes: u64,
 
-    #[serde(skip)]
     hasher: S,
 }
 

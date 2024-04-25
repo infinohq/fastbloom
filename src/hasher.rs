@@ -1,7 +1,8 @@
+use serde::{Deserialize, Serialize};
 use siphasher::sip::SipHasher13;
 use std::hash::{BuildHasher, Hasher};
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize, Serialize)]
 pub struct CloneBuildHasher<H: Hasher + Clone> {
     hasher: H,
 }
@@ -35,7 +36,7 @@ impl DefaultHasher {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RandomDefaultHasher(SipHasher13);
 
 impl RandomDefaultHasher {
@@ -43,6 +44,8 @@ impl RandomDefaultHasher {
     pub fn seeded(seed: &[u8; 16]) -> Self {
         Self(SipHasher13::new_with_key(seed))
     }
+
+    pub fn get_key() {}
 }
 
 impl Default for RandomDefaultHasher {
